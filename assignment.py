@@ -10,12 +10,15 @@ import numpy as np
 
 from compas import get
 from compas.datastructures import Mesh
+from compas_plotters import MeshPlotter
+
+# HELPERS
 
 
 def vector_2pt_xy(point1: List[float], point2: List[float]) -> List[float]:
     ''' Returns vector between two points
 
-        >>> vector_2pt_xy([-1, -4, 8], [2, 9, 2])
+        >>> vector_2pt_xy([-1., -4., 8.], [2., 9., 2.])
         [3.0, 13.0, -6.0]
     '''
 
@@ -110,6 +113,50 @@ def normalize_vector(v: List[float]) -> List[float]:
     return [c / magnitude for c in v]
 
 
+def traverse_mesh(mesh, start_key) -> List[int]:
+    ''' Calculates path through vertices from right to left on a rectaungular 2d mesh
+    '''
+
+    # get dict with keys and coords
+    vert_coords = {}
+    for vkey in mesh.vertices():
+        vert_coords[vkey] = mesh.vertex_coordinates(vkey)
+
+    # save path
+    traversed_verts = []
+
+    # start from user input vert
+    start_vert = vert_coords.pop(start_key)
+    traversed_verts.append(start_key)
+
+    # setup goal x value
+    x_values = []
+    for key in vert_coords:
+        x_values.append(vert_coords[key][0])
+
+    x_goal = min(x_values)
+
+    while start_vert[0] != x_goal:
+
+        # find magnitudes of vectors between vertices and start
+        magnitudes = {}
+        for key in vert_coords:
+            # TODO: Remove points from dict if x < start_x
+            if vert_coords[key][0] < start_vert[0]:
+                vector = vector_2pt_xy(start_vert, vert_coords[key])
+                magnitude = magnitude_vector(vector)
+                magnitudes[key] = magnitude
+
+        key_min = min(magnitudes.keys(), key=(lambda k: magnitudes[k]))
+
+        traversed_verts.append(key_min)
+        start_vert = vert_coords.pop(key_min)
+
+    return traversed_verts
+
+
+# TASKS
+
 def orthonormal_vectors(vector1: List[float], vector2: List[float]) -> List[List[float]]:
     ''' Geometry task 1
         Returns orthonormal basis given two vectors
@@ -189,52 +236,48 @@ def task3_w_numpy(vectors1: List[float], vectors2: List[float]) -> List[float]:
     return np.cross(v1_array, v2_array)
 
 
-def traverse_mesh() -> None:
-    # TODO: get start_vert from arg
-    # TODO: visualize
+def visualize_mesh_traversal() -> None:
+    ''' Datastructures task
+    '''
+
     mesh = Mesh.from_obj(get('faces.obj'))
 
-    # get dict with keys and coords
-    vert_coords = {}
-    for vkey in mesh.vertices():
-        vert_coords[vkey] = mesh.vertex_coordinates(vkey)
+    x_values = {}
+    for vkey in mesh.vertices_on_boundary():
+        x_values[vkey] = mesh.vertex_coordinates(vkey)[0]
 
-    # right hand side of mesh
-    start_vert = vert_coords.pop(17)
+    max_x = max(x_values.values())
 
-    print('Starting traversal\nStart vertex: {:0f}, {:0f}, {:0f}'.format(*start_vert))
+    print("Vertices on the right edge of the mesh:")
+    print([key for key in x_values if x_values[key] == max_x])
 
-    # setup goal x value
-    x_values = []
-    for key in vert_coords:
-        x_values.append(vert_coords[key][0])
+    start_key = int(input("\nSelect start vertex: "))
 
-    x_goal = min(x_values)
+    path_keys = traverse_mesh(mesh, start_key)
 
-    while start_vert[0] != x_goal:
-        # find magnitudes of vectors between vertices and start
-        magnitudes = {}
-        for key in vert_coords:
-            # TODO: Remove points from dict if x < start_x
-            if vert_coords[key][0] < start_vert[0]:
-                vector = vector_2pt_xy(start_vert, vert_coords[key])
-                magnitude = magnitude_vector(vector)
-                magnitudes[key] = magnitude
+    print('\nPath calculated, starting MeshPlotter.')
 
-        key_min = min(magnitudes.keys(), key=(lambda k: magnitudes[k]))
+    plotter = MeshPlotter(mesh, figsize=(16, 10))
+    plotter.draw_vertices(
+        text={key: key for key in path_keys},
+        radius=0.2,
+        facecolor={key: '#ff0000' for key in path_keys})
 
-        start_vert = vert_coords.pop(key_min)
+    plotter.draw_edges()
+    plotter.draw_faces()
 
-        print('Found vertex at {:0f}, {:0f}, {:0f}'.format(*start_vert))
-
-    print('Mesh traversed')
+    plotter.show()
 
 
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
-    print("Module0, 02_datastructures_and_geometry assignment by " + __author__ + "\n")
+    print("\nModule0, 02_datastructures_and_geometry assignment by " + __author__ + "\n")
     print("The geometry tasks are demonstrated through their doctests.")
-    print("The datastructures task is demonstrated using console output.")
+    print("The datastructures task is demonstrated using the mesh plotter.\n")
 
-    traverse_mesh()
+    print('\nRunning doctests...')
+    results, _ = doctest.testmod()
+    if results == 0:
+        print('Doctest exited without errors.\n')
+
+    visualize_mesh_traversal()
