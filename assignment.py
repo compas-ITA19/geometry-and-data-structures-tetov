@@ -190,6 +190,8 @@ def task3_w_numpy(vectors1: List[float], vectors2: List[float]) -> List[float]:
 
 
 def traverse_mesh() -> None:
+    # TODO: get start_vert from arg
+    # TODO: visualize
     mesh = Mesh.from_obj(get('faces.obj'))
 
     # get dict with keys and coords
