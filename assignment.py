@@ -1,4 +1,4 @@
-''' Assignment for module1 in ITA19 COMPAS course
+''' Assignment for module0, 02_geometry_and_datastructures in ITA19 COMPAS course
 '''
 
 __author__ = "Anton T Johansson"
