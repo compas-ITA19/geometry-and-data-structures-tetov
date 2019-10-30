@@ -204,7 +204,7 @@ def area_convex_polygon(verts: List[List[float]]) -> float:
     return sum(areas)
 
 
-def task3_wo_numpy(vectors1: List[float], vectors2: List[float]) -> List[List[float]]:
+def task3_wo_numpy(vectors1: List[List[float]], vectors2: List[List[float]]) -> List[List[float]]:
     ''' Geometry task 3a
 
         >>> task3_wo_numpy([[2, 5, -1], [12, 15, 0], [9, 8, 1]], [[ -12, -4, 1], [9, 4, 1], [0, 5, 2]])
@@ -253,15 +253,15 @@ def visualize_mesh_traversal() -> None:
 
     start_key = int(input("\nSelect start vertex: "))
 
-    path_keys = traverse_mesh(mesh, start_key)
+    path_verts = traverse_mesh(mesh, start_key)
 
     print('\nPath calculated, starting MeshPlotter.')
 
     plotter = MeshPlotter(mesh, figsize=(16, 10))
     plotter.draw_vertices(
-        text={key: key for key in path_keys},
+        text={key: key for key in path_verts},
         radius=0.2,
-        facecolor={key: '#ff0000' for key in path_keys})
+        facecolor={key: '#ff0000' for key in path_verts})
 
     plotter.draw_edges()
     plotter.draw_faces()
